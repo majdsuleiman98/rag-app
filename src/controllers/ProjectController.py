@@ -17,6 +17,6 @@ class ProjectController(BaseController):
     def generate_unique_filename(self, file: UploadFile, project_root: str):
         _, file_ext = os.path.splitext(file.filename)
         key = uuid.uuid4().hex
-        unique_filename = f"{key}{file_ext}"
-        file_path = f"{project_root}/{unique_filename}"
-        return key, file_path
+        file_id = f"{key}{file_ext}"
+        file_path = f"{project_root}/{file_id}"
+        return file_id, file_path
