@@ -8,8 +8,11 @@ import logging
 from .schemes.data import ProcessRequest
 from models.ProjectModel import ProjectModel
 from models.ChunkModel import ChunkModel
+from models.AssetModel import AssetModel
 from models.db_schemes.Chunk import Chunk
-
+from models.db_schemes.Asset import Asset
+from models.enums.AssetEnum import AssetEnums
+import os
 # Initialize logging
 logger = logging.getLogger("uvicorn.error")
 
@@ -31,7 +34,11 @@ async def upload_data(request: Request, id: str, file: UploadFile, app_settings:
     except Exception as e:
         logger.error(f"File upload failed: {e}")
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content={"message": ResponseSignal.FILE_UPLOAD_FAILURE.value})
-    return JSONResponse(status_code=status.HTTP_200_OK, content={"message": ResponseSignal.FILE_UPLOAD_SUCCESS.value, "file_id":file_id, "project_id":str(project._id)})
+    
+    asset_model = await AssetModel.create_instance(db_client= request.app.db_client)
+    asset_recource = Asset(asset_project_id=project.id, asset_type=AssetEnums.ASSET_TYPE.value,asset_name=file_id, asset_size=os.path.getsize(file_path))
+    _ = await asset_model.create_asset(asset_recource)
+    return JSONResponse(status_code=status.HTTP_200_OK, content={"message": ResponseSignal.FILE_UPLOAD_SUCCESS.value, "file_id":file_id, "project_id":str(project.id)})
 
 @data_router.post("/process/{id}")
 async def process_data(request: Request, id: str, process_request: ProcessRequest):
