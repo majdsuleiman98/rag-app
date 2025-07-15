@@ -19,7 +19,7 @@ class ProcessController(BaseController):
         if file_extension == ProcessingEnums.TXT.value:
             return TextLoader(file_path, encoding="utf-8")
         if file_extension == ProcessingEnums.PDF.value:
-            return PyMuPDFLoader(file_path, encoding="utf-8")
+            return PyMuPDFLoader(file_path)
         return None
     
     def get_file_content(self, file_id: str):
@@ -32,7 +32,7 @@ class ProcessController(BaseController):
             chunk_overlap=overlap_size,
             length_function=len
         )
-        text = [file_content[0].page_content]
-        metadata = [file_content[0].metadata]
-        chunks = splitter.create_documents(text, metadatas=metadata)
+        texts = [doc.page_content for doc in file_content]
+        metadatas = [doc.metadata for doc in file_content]
+        chunks = splitter.create_documents(texts, metadatas=metadatas)
         return chunks
