@@ -8,6 +8,7 @@ class Chunk(BaseModel):
     chunk_text: str = Field(..., min_length=1)
     chunk_metadata: dict
     chunk_order: int = Field(..., gt=0)
+    chunk_asset_id: ObjectId
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     @classmethod

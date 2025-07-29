@@ -1,6 +1,5 @@
 from .BaseController import BaseController
 from fastapi import UploadFile
-
 import os
 import uuid
 

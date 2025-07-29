@@ -21,7 +21,11 @@ class ChunkModel(BaseDataModel):
             self.collection = self.db_client[DatabaseEnum.COLLECTION_CHUNK_NAME.value]
             indexes = Chunk.get_indexes()
             for index in indexes:
-                await self.collection.create_index(index["key"],name=index["name"],unique=index["unique"])
+                await self.collection.create_index(
+                    index["key"],
+                    name=index["name"],
+                    unique=index["unique"]
+                    )
 
     async def insert_chunk(self, chunk: Chunk):
         result = await self.collection.insert_one(chunk.dict(by_alias=True, exclude_unset=True))
