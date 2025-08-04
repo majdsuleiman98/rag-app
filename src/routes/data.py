@@ -56,24 +56,20 @@ async def upload_file(request: Request, project_id: str, file: UploadFile, app_s
 
 @data_router.post("/process/{project_id}")
 async def process_data(request: Request, project_id: str, process_request: ProcessRequest):
-    #file_id = process_request.file_id
     chunk_size = process_request.chunk_size
     overlap_size = process_request.overlap_size
     do_reset = process_request.do_reset
     project_model = await ProjectModel.create_instance(db_client= request.app.db_client)
     project = await project_model.get_project_or_create_one(project_id=project_id)
     project_file_ids = dict()
-    #if process_request.file_id:
-    #    project_file_ids = [process_request.file_id]
-    #else:
     asset_model = await AssetModel.create_instance(db_client=request.app.db_client)
     project_files = await asset_model.get_all_project_assets(asset_project_id=project.id, asset_type=AssetEnums.ASSET_TYPE.value)
     project_file_ids = {rec.id: rec.asset_name for rec in project_files}
     if len(project_files) == 0:
-            return JSONResponse(
-                status_code=status.HTTP_404_NOT_FOUND, 
-                content={"message": ResponseSignal.NO_FILES_ERROR.value}
-                )
+        return JSONResponse(
+            status_code=status.HTTP_404_NOT_FOUND, 
+            content={"message": ResponseSignal.NO_FILES_ERROR.value}
+            )
     process_controller = ProcessController(project_id=project_id)
     number_of_records = 0
     number_of_files = 0
