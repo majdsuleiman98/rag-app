@@ -9,10 +9,12 @@ class GroqProvider(LLMInterface):
     Implementation of the LLMInterface for Groq's API.
     This class provides methods to interact with Groq's text generation and embedding models.
     """
-    def __init__(self, api_key: str, 
-                    default_input_max_characters: int=1000, 
-                    default_output_max_tokens: int=1000, 
-                    default_temperature: float=0.1):
+    def __init__(
+                self, api_key: str, 
+                default_input_max_characters: int=1000, 
+                default_output_max_tokens: int=1000, 
+                default_temperature: float=0.1
+            ):
         
         super().__init__()
         self.api_key = api_key
@@ -50,18 +52,17 @@ class GroqProvider(LLMInterface):
             max_completion_tokens=max_output_tokens if max_output_tokens else self.default_output_max_tokens,
             temperature=temperature if temperature else self.default_temperature,
         )
-        if response and 'choices' in response and len(response['choices']) > 0 and response['choices'][0]['message']:
-            return response['choices'][0]['message']['content']
+        if response and response.choices and len(response.choices) > 0:
+            message = response.choices[0].message
+            return message.content if message and message.content else "No content returned."
         else:
-            raise ValueError("Failed to generate text. Response: {}".format(response)) 
-    
+            raise ValueError(f"Failed to generate text. Response: {response}")
     
     def process_text(self, text: str) -> str:
         return text[:self.default_input_max_characters].strip() if len(text) > self.default_input_max_characters else text
 
     def construct_prompt(self, prompt: str, role: str) -> dict:
         return {"role":role, "content":self.process_text(prompt)}
-
 
     def embed_text(self, text: str, doc_type: str=None) -> list:
         raise NotImplementedError("Embedding functionality is not implemented for GroqProvider.")

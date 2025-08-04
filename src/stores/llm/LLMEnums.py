@@ -3,7 +3,7 @@ from enum import Enum
 class LLMEnums(Enum):
     OPENAI = "openai"
     COHERE = "cohere"
-    QROQ = "qroq"
+    QROQ = "groq"
 
 class OpenAIEnums(Enum):
     SYSTEM="system"

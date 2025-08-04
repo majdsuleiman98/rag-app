@@ -46,7 +46,7 @@ class LLMInterface(ABC):
         """
         Generate text based on the provided prompt.
         :param prompt: The input text to generate a response for.
-        :param chat_history: Optional chat history to provide context.
+        :param chat_history: chat history to provide context.
         :param max_output_tokens: Maximum number of tokens to generate.
         :param temperature: Sampling temperature for text generation.
         :return: Generated text as a string.

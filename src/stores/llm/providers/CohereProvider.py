@@ -7,10 +7,12 @@ class CohereProvider(LLMInterface):
     Implementation of the LLMInterface for Cohere's API.
     This class provides methods to interact with Cohere's text generation and embedding models.
     """
-    def __init__(self, api_key: str, 
-                    default_input_max_characters: int=1000, 
-                    default_output_max_tokens: int=1000, 
-                    default_temperature: float=0.1):
+    def __init__(
+                self, api_key: str, 
+                default_input_max_characters: int=1000, 
+                default_output_max_tokens: int=1000, 
+                default_temperature: float=0.1
+            ):
         
         super().__init__()
         self.api_key = api_key
@@ -37,7 +39,7 @@ class CohereProvider(LLMInterface):
     
     def generate_text(self, prompt: str, chat_history: list=[], max_output_tokens: int=None, temperature: float=None) -> str:
         if not self.client:
-            raise ValueError("OpenAI client is not initialized.")
+            raise ValueError("Cohere client is not initialized.")
         if not self.generation_model_id:
             raise ValueError("Generation model is not set.")
         
@@ -48,14 +50,13 @@ class CohereProvider(LLMInterface):
             max_tokens=max_output_tokens if max_output_tokens else self.default_output_max_tokens,
             temperature=temperature if temperature else self.default_temperature,
         )
-        if response and 'message' in response and len(response['message']['content']) > 0 and response['message']['content'][0].text:
-            return response['message']['content'][0].text
+        if response and response.message and response.message.content:
+            return "".join([c.text for c in response.message.content if hasattr(c, 'text')])
         else:
-            raise ValueError("Failed to generate text. Response: {}".format(response)) 
-    
-    
+            raise ValueError(f"Failed to generate text. Response: {response}")
+
     def process_text(self, text: str) -> str:
-        return text[:self.default_input_max_characters].strip() if len(text) > self.default_input_max_characters else text
+        return text[:self.default_input_max_characters].strip()
 
     def construct_prompt(self, prompt: str, role: str) -> dict:
         return {"role":role, "content":self.process_text(prompt)}
@@ -73,7 +74,7 @@ class CohereProvider(LLMInterface):
             input_type= CohereEnums.DOCUMENT.value if doc_type == DocumentTypeEnums.DOCUMENT.value else CohereEnums.QUERY.value,
             embedding_types=["float"],
         )
-        if response and 'data' in response and response['data'][0]['embedding']:
-            return response['data'][0]['embedding']
+        if response and response.embeddings.float and len(response.embeddings.float) > 0:
+            return response.embeddings.float
         else:
             raise ValueError("Failed to embed text. Response: {}".format(response))

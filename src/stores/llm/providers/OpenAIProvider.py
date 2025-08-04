@@ -7,22 +7,24 @@ class OpenAIProvider(LLMInterface):
     Implementation of the LLMInterface for OpenAI's API.
     This class provides methods to interact with OpenAI's text generation and embedding models.
     """
-    def __init__(self, api_key: str, 
-                    api_url: str=None, 
-                    default_input_max_characters: int=1000, 
-                    default_output_max_tokens: int=1000, 
-                    default_temperature: float=0.1):
+    def __init__(
+                self, api_key: str, 
+                #api_url: str=None, 
+                default_input_max_characters: int=1000, 
+                default_output_max_tokens: int=1000, 
+                default_temperature: float=0.1
+            ):
         
         super().__init__()
         self.api_key = api_key
-        self.api_url = api_url
+        #self.api_url = api_url
         self.default_input_max_characters = default_input_max_characters
         self.default_output_max_tokens = default_output_max_tokens
         self.default_temperature = default_temperature
         self.generation_model_id = None
         self.embedding_model_id = None
         self.embedding_dimensions = None
-        self.client = OpenAI(api_key=self.api_key, api_url=self.api_url)
+        self.client = OpenAI(api_key=self.api_key)
         
     def set_generation_model(self, model_id: str):
         self.generation_model_id = model_id
@@ -44,37 +46,37 @@ class OpenAIProvider(LLMInterface):
             raise ValueError("Generation model is not set.")
         
         chat_history.append(self.construct_prompt(prompt, OpenAIEnums.USER.value))
-        response = self.client.completions.create(
+        response = self.client.chat.completions.create(
             model=self.generation_model_id,
             messages=chat_history,
             max_tokens=max_output_tokens if max_output_tokens else self.default_output_max_tokens,
             temperature=temperature if temperature else self.default_temperature,
         )
-        if response and 'choices' in response and len(response['choices']) > 0 and response['choices'][0]['message']:
+        if response and 'choices' in response and len(response['choices']) > 0 and response['choices'][0]['message']['content']:
             return response['choices'][0]['message']['content']
         else:
             raise ValueError("Failed to generate text. Response: {}".format(response)) 
     
     
     def process_text(self, text: str) -> str:
-        return text[:self.default_input_max_characters].strip() if len(text) > self.default_input_max_characters else text
+        return text[:self.default_input_max_characters].strip()
 
     def construct_prompt(self, prompt: str, role: str) -> dict:
         return {"role":role, "content":self.process_text(prompt)}
 
 
     def embed_text(self, text: str, doc_type: str=None) -> list:
-        if not self.embedding_model_id:
-            raise ValueError("Embedding model is not set.")
         if not self.client:
             raise ValueError("OpenAI client is not initialized.")
+        if not self.embedding_model_id:
+            raise ValueError("Embedding model is not set.")
         
         response = self.client.embeddings.create(
             model=self.embedding_model_id,
             input=text,
         )
-        if response and response.embeddings.float and len(response.embeddings.float) > 0:
-            return response.embeddings.float
+        if response and 'data' in response and response['data'][0]['embedding']:
+            return response['data'][0]['embedding']
         else:
             raise ValueError("Failed to embed text. Response: {}".format(response))
         
